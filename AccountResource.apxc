@@ -1,0 +1,51 @@
+
+    @RestResource(urlMapping='/accounts/*')
+    global class AccountResource {
+        @HttpPost
+        global static String createAccount(String name, String phone, String email, String address) {
+            Account newAccount = new Account(
+                Name = name,
+                Phone = phone,
+                Email__c = email,
+                Address__c = address
+            );
+            insert newAccount;
+            return 'Account created successfully with Id: ' + newAccount.Id;
+        }
+        
+        @HttpGet
+        global static Account getAccount() {
+             RestRequest req = RestContext.request;
+            String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/') + 1);
+            return [SELECT Id, Name, Phone, Email__c, Address__c FROM Account WHERE Id = :accountId LIMIT 1];
+        }
+        
+        @HttpPut
+        global static String updateAccount( String name, String phone, String email, String address) {
+             RestRequest req = RestContext.request;
+            String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/') + 1);
+            Account accountToUpdate = [SELECT Id FROM Account WHERE Id = :accountId LIMIT 1];
+            if (accountToUpdate != null) {
+                accountToUpdate.Name = name;
+                accountToUpdate.Phone = phone;
+                accountToUpdate.Email__c = email;
+                accountToUpdate.Address__c = address;
+                update accountToUpdate;
+                return 'Account updated successfully';
+            }
+            return 'Account not found';
+        }
+        
+        @HttpDelete
+        global static String deleteAccount() {
+            RestRequest req = RestContext.request;
+            String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/') + 1);
+            Account accountToDelete = [SELECT Id FROM Account WHERE Id = :accountId LIMIT 1];
+            if (accountToDelete != null) {
+                delete accountToDelete;
+                return 'Account deleted successfully';
+            }
+            return 'Account not found';
+        }
+    }
+
